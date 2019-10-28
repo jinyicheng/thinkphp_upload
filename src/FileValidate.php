@@ -1,7 +1,7 @@
 <?php
 
 namespace jinyicheng\upload;
-
+use think\Validate;
 class FileValidate extends Validate
 {
     public function __construct(array $rules = [], $message = [], $field = [])
