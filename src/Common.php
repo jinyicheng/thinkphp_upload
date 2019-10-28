@@ -4,9 +4,9 @@ namespace jinyicheng\upload;
 
 abstract class Common
 {
-    protected $impl_code;
-    protected $impl_message;
-    protected $impl_error;
+    protected $impl_code=null;
+    protected $impl_message=null;
+    protected $impl_data=null;
 
     /**
      * @return mixed
@@ -25,7 +25,7 @@ abstract class Common
     /**
      * @return mixed
      */
-    public function getImplError(){
-        return $this->impl_error;
+    public function getImplData(){
+        return $this->impl_data;
     }
 }
