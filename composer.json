@@ -1,0 +1,29 @@
+{
+  "name": "jinyicheng/thinkphp_upload",
+  "description": "腾讯小游戏ThinkPHP5.0.*版",
+  "keywords": [
+    "upload",
+    "thinkphp5"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "jinyicheng",
+      "email": "234067496@qq.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.1.0",
+    "ext-redis": "*",
+    "topthink/framework": "5.0.*",
+    "aliyuncs/oss-sdk-php": "^2.3",
+    "jinyicheng/redis": "1.0",
+    "ext-curl": "*",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "jinyicheng\\thinkphp_upload\\": "src/"
+    }
+  }
+}
