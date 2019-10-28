@@ -16,9 +16,8 @@
     "php": ">=7.1.0",
     "ext-redis": "*",
     "topthink/framework": "5.0.*",
-    "aliyuncs/oss-sdk-php": "^2.3",
     "jinyicheng/redis": "1.0",
-    "ext-curl": "*",
+    "jinyicheng/think_status": "1.0",
     "ext-json": "*"
   },
   "autoload": {
