@@ -17,7 +17,7 @@
     "ext-redis": "*",
     "topthink/framework": "5.0.*",
     "jinyicheng/redis": "1.0",
-    "jinyicheng/think_status": "1.0",
+    "jinyicheng/think_status": "^1.0",
     "ext-json": "*"
   },
   "autoload": {
