@@ -2,8 +2,9 @@
 
 namespace jinyicheng\upload\implement;
 
-use app\admin\validate\FileValidate;
-use jinyicheng\upload\interfaces\FileInterface;
+use jinyicheng\upload\FileValidate;
+use jinyicheng\thinkphp_status\Status;
+use jinyicheng\upload\FileInterface;
 use Oss;
 use OSS\Core\OssException;
 use Str;
@@ -16,14 +17,7 @@ use think\Request;
 
 class ImageImplement implements FileInterface
 {
-    private $error = '';
-
-    public function getError()
-    {
-        return $this->error;
-    }
-
-    public $config = [
+    private $config = [
         'allow_max_size' => 16777216,
         'allow_ext' => 'png,jpg,gif,bmp,jpeg,webp',
         // +----------------------------------------------------------------------
@@ -41,30 +35,43 @@ class ImageImplement implements FileInterface
         'create_thumb' => true
     ];
 
-    public function __construct($config = [])
+    private static $instance = [];
+
+    /**
+     * ImageImplement constructor.
+     * @param array $config
+     */
+    private function __construct($config = [])
     {
-        if ((!is_null(Config::get('upload')))) {
-            $this->config = array_merge($this->config, Config::get('upload.image'), $config);
-        } else {
-            $this->config = array_merge($this->config, $config);
+        $this->$config = array_merge($this->$config, $config);
+    }
+
+    /**
+     * @param array $config
+     * @return ImageImplement
+     */
+    public static function getInstance($config = [])
+    {
+        $hash = md5(json_encode($config));
+        if (!isset(self::$instance[$hash])) {
+            self::$instance[$hash] = new self($config);
         }
+        return self::$instance[$hash];
     }
 
     /**
      * 上传
      *
-     * @param $field
+     * @param \Think\file $file_data
      * @param bool $is_attachment
      * @param bool $status
      * @param string $related_object
      * @param string $related_id
      * @return bool|array
-     * @throws OssException
      */
-    public function upload($field, $is_attachment = false, $status = false, $related_object = '', $related_id = '')
+    public function upload($file_data, $is_attachment = false, $status = false, $related_object = '', $related_id = '')
     {
-        $request = Request::instance();
-        $upload = $request->file($field)
+        $upload = $file_data
             ->validate([
                 'size' => $this->config['allow_max_size'],
                 'ext' => $this->config['allow_ext']
@@ -73,92 +80,108 @@ class ImageImplement implements FileInterface
             ->move($this->config['save_real_path']);
         if ($upload) {
             $image_info = ImageEditor::open($upload->getRealPath());
-            $data['f_original_name'] = $upload->getInfo('name');
-            $data['f_file_name'] = $upload->getFilename();
-            $data['f_ext'] = $upload->getExtension();
-            $data['f_save_name'] = $upload->getSaveName();
-            $data['f_size'] = $upload->getSize();
-            $data['f_height'] = $image_info->height();
-            $data['f_width'] = $image_info->width();
-            $data['f_mime'] = $upload->getMime();
-            $data['f_type'] = $image_info->type();
-            $data['f_md5'] = md5_file($upload->getRealPath());
-            $data['f_path'] = $this->config['save_relative_path'] . DS . $data['f_save_name'];
+            $data['original_name'] = $upload->getInfo('name');
+            $data['file_name'] = $upload->getFilename();
+            $data['ext'] = $upload->getExtension();
+            $data['save_name'] = $upload->getSaveName();
+            $data['size'] = $upload->getSize();
+            $data['height'] = $image_info->height();
+            $data['width'] = $image_info->width();
+            $data['mime'] = $upload->getMime();
+            $data['type'] = $image_info->type();
+            $data['md5'] = md5_file($upload->getRealPath());
+            $data['path'] = $this->config['save_relative_path'] . DS . $data['save_name'];
 
             if ($this->config['create_thumb']) {
                 /**
                  * 生成缩略图
                  */
-                $data['f_thumb_file_name'] = rtrim($data['f_file_name'], $data['f_ext']) . 'thumb.' . $data['f_ext'];
-                $data['f_thumb_save_name'] = str_replace($data['f_file_name'], $data['f_thumb_file_name'], $data['f_save_name']);
-                $thumb_pathname = $upload->getPath() . DS . $data['f_thumb_file_name'];
+                $data['thumb_file_name'] = rtrim($data['file_name'], $data['ext']) . 'thumb.' . $data['ext'];
+                $data['thumb_save_name'] = str_replace($data['file_name'], $data['thumb_file_name'], $data['save_name']);
+                $thumb_pathname = $upload->getPath() . DS . $data['thumb_file_name'];
                 $thumb_info = ImageEditor::open($upload->getRealPath())
                     ->thumb(150, 150, ImageEditor::THUMB_FILLED)
                     ->save($thumb_pathname);
-                $data['f_thumb_ext'] = pathinfo($thumb_pathname, PATHINFO_EXTENSION);
-                $data['f_thumb_mime'] = $thumb_info->mime();
-                $data['f_thumb_size'] = filesize($thumb_pathname);
-                $data['f_thumb_height'] = $thumb_info->height();
-                $data['f_thumb_width'] = $thumb_info->width();
-                $data['f_thumb_type'] = $thumb_info->type();
-                $data['f_thumb_path'] = $this->config['save_relative_path'] . DS . $data['f_thumb_save_name'];
-                $data['f_thumb_md5'] = md5_file($thumb_pathname);
-                $data['f_total_size'] = $data['f_size'] + $data['f_thumb_size'];
+                $data['thumb_ext'] = pathinfo($thumb_pathname, PATHINFO_EXTENSION);
+                $data['thumb_mime'] = $thumb_info->mime();
+                $data['thumb_size'] = filesize($thumb_pathname);
+                $data['thumb_height'] = $thumb_info->height();
+                $data['thumb_width'] = $thumb_info->width();
+                $data['thumb_type'] = $thumb_info->type();
+                $data['thumb_path'] = $this->config['save_relative_path'] . DS . $data['thumb_save_name'];
+                $data['thumb_md5'] = md5_file($thumb_pathname);
+                $data['total_size'] = $data['size'] + $data['thumb_size'];
             } else {
-                $data['f_total_size'] = $data['f_size'];
+                $data['total_size'] = $data['size'];
             }
-            $data['f_related_object'] = $related_object;
-            $data['f_related_id'] = $related_id;
-            $data['f_create_time'] = date('Y-m-d H:i:s');
-            $data['f_status'] = (int)$status;
-            $data['f_attachment'] = (int)$is_attachment;
-            $data['f_key'] = Str::keyGen();
+            $data['related_object'] = $related_object;
+            $data['related_id'] = $related_id;
+            $data['create_time'] = date('Y-m-d H:i:s');
+            $data['status'] = (int)$status;
+            $data['attachment'] = (int)$is_attachment;
+            $data['key'] = Str::keyGen();
+            $data['name'] = str_replace($data['type'],'',$data['original_name']);
             /**
              * 保存数据
              */
             Db::name('file')
                 ->insert($data);
-            return $data;
+            return [
+                'code'=>Status::get('#200.code'),
+                'data'=>$data,
+                'message'=>'上传成功'
+            ];
         } else {
-            $this->error = $upload->getError();
-            return false;
+            return [
+                'code'=>Status::get('#4031.code'),
+                'data'=>null,
+                'message'=>$upload->getError()
+            ];
         }
     }
 
     /**
      * 删除
      *
-     * @param string $f_file_name 存储名
-     * @param string $f_key 操作秘钥
+     * @param string $file_name 存储名
+     * @param string $key 操作秘钥
      * @return bool|mixed
      */
-    public function delete($f_file_name, $f_key)
+    public function delete($file_name, $key)
     {
         //数据验证
         $fileValidate = new FileValidate();
-        $fileValidate_checkResult = $fileValidate->scene('logic_file_delete')->check([
-            'f_file_name' => $f_file_name,
-            'f_key' => $f_key
+        $fileValidate_checkResult = $fileValidate->scene('delete')->check([
+            'file_name' => $file_name,
+            'key' => $key
         ]);
         if ($fileValidate_checkResult === false) {
-            $this->error = $fileValidate->getError();
-            return false;
+            return [
+                'code'=>Status::get('#4031.code'),
+                'data'=>null,
+                'message'=>$fileValidate->getError()
+            ];
         }
 
         //删除数据
-        return Db::transaction(function () use ($f_file_name, $f_key) {
+        return Db::transaction(function () use ($file_name, $key) {
             $fileDb_findResult = Db::name('file')
-                ->where('f_file_name','eq',$f_file_name)
-                ->where('f_key','eq',$f_key)
+                ->where('file_name','eq',$file_name)
+                ->where('key','eq',$key)
                 ->find();
-            Db::name('file')
-                ->where('f_file_name','eq',$f_file_name)
-                ->where('f_key','eq',$f_key)
-                ->delete();
             if (!is_null($fileDb_findResult)) {
-                unlink($this->config['save_real_path'] . DS . $fileDb_findResult['f_save_name']);
-                unlink($this->config['save_real_path'] . DS . $fileDb_findResult['f_thumb_save_name']);
+                @unlink($this->config['save_real_path'] . DS . $fileDb_findResult['save_name']);
+                @unlink($this->config['save_real_path'] . DS . $fileDb_findResult['thumb_save_name']);
             }
+            Db::name('file')
+                ->where('file_name','eq',$file_name)
+                ->where('key','eq',$key)
+                ->delete();
+            return [
+                'code'=>Status::get('#200.code'),
+                'data'=>$fileDb_findResult,
+                'message'=>'删除成功'
+            ];
         });
     }
 }

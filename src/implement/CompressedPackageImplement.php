@@ -2,19 +2,17 @@
 
 namespace jinyicheng\upload\implement;
 
-use app\admin\validate\FileValidate;
-use jinyicheng\upload\Common;
-use jinyicheng\upload\interfaces\FileInterface;
-use Oss;
+use jinyicheng\upload\FileValidate;
+use jinyicheng\thinkphp_status\Status;
+use jinyicheng\upload\FileInterface;
 use Str;
-use think\Config;
 use think\Db;
 use think\Request;
 
 
-class CompressedPackageImplement extends Common implements FileInterface
+class CompressedPackageImplement implements FileInterface
 {
-    public $config = [
+    private $config = [
         'allow_max_size' => 16777216,
         'allow_ext' => 'rar,zip,7z',
         // +----------------------------------------------------------------------
@@ -31,29 +29,43 @@ class CompressedPackageImplement extends Common implements FileInterface
         'save_relative_path' => '/upload/compressed_package'
     ];
 
-    public function __construct($config = [])
+    private static $instance = [];
+
+    /**
+     * CompressedPackageImplement constructor.
+     * @param array $config
+     */
+    private function __construct($config = [])
     {
-        if ((!is_null(Config::get('upload')))) {
-            $this->config = array_merge($this->config, Config::get('upload.compressed_package'), $config);
-        } else {
-            $this->config = array_merge($this->config, $config);
-        }
+        $this->$config = array_merge($this->$config, $config);
     }
 
     /**
+     * @param array $config
+     * @return CompressedPackageImplement
+     */
+    public static function getInstance($config = [])
+    {
+        $hash = md5(json_encode($config));
+        if (!isset(self::$instance[$hash])) {
+            self::$instance[$hash] = new self($config);
+        }
+        return self::$instance[$hash];
+    }
+    
+    /**
      * 上传
      *
-     * @param $field
+     * @param \Think\file $file_data
      * @param bool $is_attachment
      * @param bool $status
      * @param string $related_object
      * @param string $related_id
      * @return bool|array
      */
-    public function upload($field, $is_attachment = false, $status = true, $related_object = '', $related_id = '')
+    public function upload($file_data, $is_attachment = false, $status = false, $related_object = '', $related_id = '')
     {
-        $request = Request::instance();
-        $upload = $request->file($field)
+        $upload = $file_data
             ->validate([
                 'size' => $this->config['allow_max_size'],
                 'ext' => $this->config['allow_ext']
@@ -61,71 +73,86 @@ class CompressedPackageImplement extends Common implements FileInterface
             ->rule($this->config['save_rule'])
             ->move($this->config['save_real_path']);
         if ($upload) {
-            $data['f_original_name'] = $upload->getInfo('name');
-            $data['f_file_name'] = $upload->getFilename();
-            $data['f_ext'] = $upload->getExtension();
-            $data['f_save_name'] = $upload->getSaveName();
-            $data['f_size'] = $upload->getSize();
-            $data['f_height'] = '';
-            $data['f_width'] = '';
-            $data['f_mime'] = $upload->getMime();
-            $data['f_type'] = $upload->getType();
-            $data['f_md5'] = md5_file($upload->getRealPath());
-            $data['f_path'] = $this->config['save_relative_path'] . DS . $data['f_save_name'];
-            $data['f_total_size'] = $data['f_size'];
-            $data['f_related_object'] = $related_object;
-            $data['f_related_id'] = $related_id;
-            $data['f_create_time'] = date('Y-m-d H:i:s');
-            $data['f_status'] = (int)$status;
-            $data['f_attachment'] = (int)$is_attachment;
-            $data['f_key'] = Str::keyGen();
+            $data['original_name'] = $upload->getInfo('name');
+            $data['file_name'] = $upload->getFilename();
+            $data['ext'] = $upload->getExtension();
+            $data['save_name'] = $upload->getSaveName();
+            $data['size'] = $upload->getSize();
+            $data['height'] = '';
+            $data['width'] = '';
+            $data['mime'] = $upload->getMime();
+            $data['type'] = $upload->getType();
+            $data['md5'] = md5_file($upload->getRealPath());
+            $data['path'] = $this->config['save_relative_path'] . DS . $data['save_name'];
+            $data['total_size'] = $data['size'];
+            $data['related_object'] = $related_object;
+            $data['related_id'] = $related_id;
+            $data['create_time'] = date('Y-m-d H:i:s');
+            $data['status'] = (int)$status;
+            $data['attachment'] = (int)$is_attachment;
+            $data['key'] = Str::keyGen();
+            $data['name'] = str_replace($data['type'],'',$data['original_name']);
             /**
              * 保存数据
              */
             Db::name('file')
                 ->insert($data);
-            return $data;
+            return [
+                'code'=>Status::get('#200.code'),
+                'data'=>$data,
+                'message'=>'上传成功'
+            ];
         } else {
-            $this->error = $upload->getError();
-            return false;
+            return [
+                'code'=>Status::get('#4031.code'),
+                'data'=>null,
+                'message'=>$upload->getError()
+            ];
         }
     }
 
     /**
      * 删除
-     *
-     * @param string $f_file_name 存储名
-     * @param string $f_key 操作秘钥
+     * @param string $file_name 存储名
+     * @param string $key 操作秘钥
      * @return bool|mixed
      */
-    public function delete($f_file_name, $f_key)
+    public function delete($file_name, $key)
     {
         //数据验证
         $fileValidate = new FileValidate();
-        $fileValidate_checkResult = $fileValidate->scene('logic_file_delete')->check([
-            'f_file_name' => $f_file_name,
-            'f_key' => $f_key
+        $fileValidate_checkResult = $fileValidate->scene('delete')->check([
+            'file_name' => $file_name,
+            'key' => $key
         ]);
         if ($fileValidate_checkResult === false) {
-            $this->error = $fileValidate->getError();
-            return false;
+            return [
+                'code'=>Status::get('#4031.code'),
+                'data'=>null,
+                'message'=>$fileValidate->getError()
+            ];
         }
 
         //删除数据
-        return Db::transaction(function () use ($f_file_name, $f_key) {
+        return Db::transaction(function () use ($file_name, $key) {
             $fileDb_findResult = Db::name('file')
                 ->find([
-                    'f_file_name' => $f_file_name,
-                    'f_key' => $f_key
+                    'file_name' => $file_name,
+                    'key' => $key
                 ]);
-            if ($fileDb_findResult != null) {
-                unlink(Config::get('upload.image')['save_real_path'] . DS . $fileDb_findResult['f_save_name']);
+            if (!is_null($fileDb_findResult)) {
+                @unlink($this->config['save_real_path'] . DS . $fileDb_findResult['save_name']);
             }
             Db::name('file')
                 ->delete([
-                    'f_file_name' => $f_file_name,
-                    'f_key' => $f_key
+                    'file_name' => $file_name,
+                    'key' => $key
                 ]);
+            return [
+                'code'=>Status::get('#200.code'),
+                'data'=>$fileDb_findResult,
+                'message'=>'删除成功'
+            ];
 
         });
     }

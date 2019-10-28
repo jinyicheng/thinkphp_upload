@@ -10,15 +10,16 @@
 namespace jinyicheng\upload;
 
 use InvalidArgumentException;
+use jinyicheng\thinkphp_status\Status;
 use jinyicheng\upload\implement\CompressedPackageImplement;
 use jinyicheng\upload\implement\DocumentImplement;
 use jinyicheng\upload\implement\ImageImplement;
 use jinyicheng\upload\implement\MediaImplement;
 use jinyicheng\upload\implement\ProgramImplement;
+use jinyicheng\upload\interfaces\FileInterface;
 use think\Config;
 use think\Exception;
 use think\Request;
-use think\response\Json;
 
 class File extends Common
 {
@@ -110,6 +111,10 @@ class File extends Common
     ];
     private static $instance = [];
 
+    /**
+     * File constructor.
+     * @param array $config
+     */
     private function __construct($config = [])
     {
         if ((!is_null(Config::get('upload')))) {
@@ -119,6 +124,10 @@ class File extends Common
         }
     }
 
+    /**
+     * @param array $config
+     * @return File
+     */
     public static function getInstance($config = [])
     {
         if ($config === false || $config === []) throw new InvalidArgumentException('upload配置不存在');
@@ -129,6 +138,10 @@ class File extends Common
         return self::$instance[$hash];
     }
 
+    /**
+     * @param $extension
+     * @return string|null
+     */
     public function typeOfExtension($extension)
     {
         switch ($extension) {
@@ -168,105 +181,84 @@ class File extends Common
     }
 
     /**
-     * @param Request $request
-     * @return Json
+     * @param \Think\file $file_data
+     * @param bool $is_attachment
+     * @param bool $status
+     * @param string $related_object
+     * @param string $related_id
+     * @return array|mixed
      * @throws Exception
      */
-    public function upload(Request $request)
+    public function upload($file_data,$is_attachment=false,$status=false,$related_object='',$related_id='')
     {
-        $upload = $request->file($request->param('field'));
-        $extension = strtolower(pathinfo($upload->getInfo('name'), PATHINFO_EXTENSION));
+        $extension = strtolower(pathinfo($file_data->getInfo('name'), PATHINFO_EXTENSION));
         $typeOfExtension = $this->typeOfExtension($extension);
-        if ($typeOfExtension === false) {
-            switch ($request->get('plugin')) {
-                case 'ueditor':
-                    json([
-                        'state' => '文件类型' . $extension . '未经许可！',
-                        'url' => null,
-                        'title' => null,
-                        'original' => null,
-                        'type' => null,
-                        'size' => null,
-                        'key' => null
-                    ]);
-                    break;
-                default:
-                    return json([
-                        'code' => 0,
-                        'msg' => '文件类型' . $extension . '未经许可！'
-                    ]);
+        if (is_null($typeOfExtension)) {
+            if($request->get('plugin')=='ueditor') {
+                return [
+                    'state' => '文件类型' . $extension . '未经许可！',
+                    'url' => null,
+                    'title' => null,
+                    'original' => null,
+                    'type' => null,
+                    'size' => null,
+                    'key' => null
+                ];
+            }else{
+                return [
+                    'code' => 0,
+                    'msg' => '文件类型' . $extension . '未经许可！'
+                ];
             }
         }
-        $fileLogic = self::handle($typeOfExtension);
-        $fileLogic_result = $fileLogic->upload(
-            $request->param('field'),
-            $request->param('is_attachment', false),
-            $request->param('status', false),
-            $request->param('related_object', ''),
-            $request->param('related_id', '')
+        $fileImplement = self::handle($typeOfExtension);
+        /** @var FileInterface $fileImplement */
+        $fileImplement_uploadResult = $fileImplement->upload(
+            $file_data,
+            $is_attachment,
+            $status,
+            $related_object,
+            $related_id
         );
-        if ($fileLogic_result === false) {
-            switch ($request->get('plugin')) {
-                case 'ueditor':
-                    json([
-                        'state' => $fileLogic->getError(),
-                        'url' => null,
-                        'title' => null,
-                        'original' => null,
-                        'type' => null,
-                        'size' => null,
-                        'key' => null
-                    ])->send();
-                    break;
-                default:
-                    json([
-                        'code' => 0,
-                        'msg' => $fileLogic->getError()
-                    ])->send();
+        if($request->get('plugin')=='ueditor'){
+            if($fileImplement_uploadResult['code']===Status::get('#4031.code')){
+                return [
+                    'state' => $fileImplement_uploadResult['message'],
+                    'url' => null,
+                    'title' => null,
+                    'original' => null,
+                    'type' => null,
+                    'size' => null,
+                    'key' => null
+                ];
+            }else{
+                return array_merge(
+                $fileImplement_uploadResult,
+                [
+                    'state' => 'SUCCESS'
+                ]);
             }
         } else {
-            switch ($request->get('plugin')) {
-                case 'ueditor':
-                    json(
-                        array_merge(
-                            $fileLogic_result,
-                            [
-                                'state' => 'SUCCESS'
-                            ])
-                    )->send();
-                    break;
-                default:
-                    json([
-                        'code' => 1,
-                        'msg' => '上传成功！',
-                        'data' => $fileLogic_result
-                    ]);
-            }
+            return $fileImplement_uploadResult;
         }
     }
 
     /**
-     * @param Request $request
-     * @return Json|void
+     * @param string $file_name
+     * @param string $key
+     * @return bool|mixed
      * @throws Exception
      */
-    public function delete(Request $request)
+    public function delete($file_name='',$key='')
     {
-        $extension = strtolower(pathinfo($request->post('f_file_name'), PATHINFO_EXTENSION));
+        $extension = strtolower(pathinfo($request->post('file_name'), PATHINFO_EXTENSION));
         $typeOfExtension = $this->typeOfExtension($extension);
-        if ($typeOfExtension === false) {
-            throw new Exception($extension . '文件处理接口未定义。');
-        }
-        $fileLogic = self::handle($typeOfExtension);
-        $fileLogic_deleteResult = $fileLogic->delete(
-            $request->post('f_file_name', ''),
-            $request->post('f_key', '')
+        $file = self::handle($typeOfExtension);
+        $file_deleteResult = $file->delete(
+            $file_name,
+            $key
         );
-        if ($fileLogic_deleteResult === false) {
-            $this->error("删除失败！" . $fileLogic->getError());
-        } else {
-            $this->success("删除成功！");
-        }
+        return $file_deleteResult;
     }
 
 
@@ -292,7 +284,7 @@ class File extends Common
                 return ProgramImplement::getInstance($config);
                 break;
             case 'compressed_package':
-                return CompressedPackageImplement::getIntance($config);
+                return CompressedPackageImplement::getInstance($config);
                 break;
             default:
                 throw new Exception($type . '文件处理接口未实现。');
