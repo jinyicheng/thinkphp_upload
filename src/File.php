@@ -198,7 +198,7 @@ class File
                 'data' => null,
             ];
         }
-        $handle = self::handle($typeOfExtension);
+        $handle = self::handle($typeOfExtension, $this->config);
         /** @var FileInterface $handle */
         return $handle->upload(
             $file_data,
