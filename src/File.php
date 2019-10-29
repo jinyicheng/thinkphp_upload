@@ -129,7 +129,6 @@ class File
      */
     public static function getInstance($config = [])
     {
-        if ($config === false || $config === []) throw new InvalidArgumentException('upload配置不存在');
         $hash = md5(json_encode($config));
         if (!isset(self::$instance[$hash])) {
             self::$instance[$hash] = new self($config);
