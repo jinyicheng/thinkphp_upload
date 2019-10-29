@@ -36,7 +36,7 @@ class DocumentImplement implements FileInterface
      */
     private function __construct($config = [])
     {
-        $this->$config = array_merge($this->$config, $config);
+        $this->config = array_merge($this->config, $config);
     }
 
     /**

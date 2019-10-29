@@ -117,9 +117,9 @@ class File
     private function __construct($config = [])
     {
         if ((!is_null(Config::get('upload')))) {
-            $this->$config = array_merge($this->$config, Config::get('upload'), $config);
+            $this->config = array_merge($this->config, Config::get('upload'), $config);
         } else {
-            $this->$config = array_merge($this->$config, $config);
+            $this->config = array_merge($this->config, $config);
         }
     }
 
