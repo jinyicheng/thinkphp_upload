@@ -91,7 +91,7 @@ class ProgramImplement implements FileInterface
             $data['status'] = (int)$status;
             $data['attachment'] = (int)$is_attachment;
             $data['key'] = Unique::token();
-            $data['name'] = str_replace($data['type'],'',$data['original_name']);
+            $data['name'] = rtrim($data['original_name'],'.'.$data['ext']);
             /**
              * 保存数据
              */
