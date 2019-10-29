@@ -15,7 +15,7 @@ class MediaImplement implements FileInterface
 {
     private $config = [
         'allow_max_size' => 16777216,
-        'allow_ext' => 'flv,swf,mkv,avi,rm,rmvb,mpeg,mpg,ogg,ogv,mov,wmv,mp4,webm,mp3,wav,mid',
+        'allow_ext' => 'ape,aac,aiff,amr,caf,flac,flv,swf,avi,rm,rmvb,mpeg,mpg,ogg,ogv,mkv,mov,m4a,wmv,mp4,webm,mp3,wav,wma,mid',
         // +----------------------------------------------------------------------
         // | 保存规则
         // +----------------------------------------------------------------------
