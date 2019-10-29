@@ -30,7 +30,8 @@ class ImageImplement implements FileInterface
         'save_rule' => 'default',
         'save_real_path' => '/home/wwwroot/ssp_v1/public/upload/image',
         'save_relative_path' => '/upload/image',
-        'create_thumb' => true
+        'create_thumb' => true,
+        'db_table_name'=>'image'
     ];
 
     private static $instance = [];
@@ -122,7 +123,7 @@ class ImageImplement implements FileInterface
             /**
              * 保存数据
              */
-            Db::name('file')
+            Db::name($this->config['db_table_name'])
                 ->insert($data);
             return [
                 'code'=>Status::get('#200.code'),
@@ -163,7 +164,7 @@ class ImageImplement implements FileInterface
 
         //删除数据
         return Db::transaction(function () use ($file_name, $key) {
-            $fileDb_findResult = Db::name('file')
+            $fileDb_findResult = Db::name($this->config['db_table_name'])
                 ->where('file_name','eq',$file_name)
                 ->where('key','eq',$key)
                 ->find();
@@ -171,7 +172,7 @@ class ImageImplement implements FileInterface
                 @unlink($this->config['save_real_path'] . DS . $fileDb_findResult['save_name']);
                 @unlink($this->config['save_real_path'] . DS . $fileDb_findResult['thumb_save_name']);
             }
-            Db::name('file')
+            Db::name($this->config['db_table_name'])
                 ->where('file_name','eq',$file_name)
                 ->where('key','eq',$key)
                 ->delete();

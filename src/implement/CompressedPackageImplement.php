@@ -6,6 +6,7 @@ use jinyicheng\thinkphp_upload\FileValidate;
 use jinyicheng\thinkphp_status\Status;
 use jinyicheng\thinkphp_upload\FileInterface;
 use jinyicheng\toolbox\Unique;
+use think\Config;
 use think\Db;
 use think\Request;
 
@@ -26,7 +27,8 @@ class CompressedPackageImplement implements FileInterface
         //'uniqid':使用uniqid
         'save_rule' => 'default',
         'save_real_path' => '/home/wwwroot/ssp_v1/public/upload/compressed_package',
-        'save_relative_path' => '/upload/compressed_package'
+        'save_relative_path' => '/upload/compressed_package',
+        'db_table_name'=>'compressed_package'
     ];
 
     private static $instance = [];
@@ -95,7 +97,7 @@ class CompressedPackageImplement implements FileInterface
             /**
              * 保存数据
              */
-            Db::name('file')
+            Db::name($this->config['db_table_name'])
                 ->insert($data);
             return [
                 'code'=>Status::get('#200.code'),
@@ -135,7 +137,7 @@ class CompressedPackageImplement implements FileInterface
 
         //删除数据
         return Db::transaction(function () use ($file_name, $key) {
-            $fileDb_findResult = Db::name('file')
+            $fileDb_findResult = Db::name($this->config['db_table_name'])
                 ->find([
                     'file_name' => $file_name,
                     'key' => $key
@@ -143,7 +145,7 @@ class CompressedPackageImplement implements FileInterface
             if (!is_null($fileDb_findResult)) {
                 @unlink($this->config['save_real_path'] . DS . $fileDb_findResult['save_name']);
             }
-            Db::name('file')
+            Db::name($this->config['db_table_name'])
                 ->delete([
                     'file_name' => $file_name,
                     'key' => $key

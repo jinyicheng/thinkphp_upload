@@ -1,6 +1,6 @@
 {
   "name": "jinyicheng/thinkphp_upload",
-  "description": "腾讯小游戏ThinkPHP5.0.*版",
+  "description": "ThinkPHP5.0.*版上传整合模块",
   "keywords": [
     "upload",
     "thinkphp5"
