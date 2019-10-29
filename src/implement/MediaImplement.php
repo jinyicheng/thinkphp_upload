@@ -5,8 +5,7 @@ namespace jinyicheng\upload\implement;
 use jinyicheng\upload\FileValidate;
 use jinyicheng\thinkphp_status\Status;
 use jinyicheng\upload\FileInterface;
-use Oss;
-use Str;
+use jinyicheng\toolbox\Unique;
 use think\Config;
 use think\Db;
 use think\Request;
@@ -92,7 +91,7 @@ class MediaImplement implements FileInterface
             $data['create_time'] = date('Y-m-d H:i:s');
             $data['status'] = (int)$status;
             $data['attachment'] = (int)$is_attachment;
-            $data['key'] = Str::keyGen();
+            $data['key'] = Unique::token();
             $data['name'] = str_replace($data['type'],'',$data['original_name']);
             /**
              * 保存数据
