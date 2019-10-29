@@ -9,6 +9,7 @@
 
 namespace jinyicheng\thinkphp_upload;
 
+use BadFunctionCallException;
 use InvalidArgumentException;
 use jinyicheng\thinkphp_status\Status;
 use jinyicheng\thinkphp_upload\implement\CompressedPackageImplement;
@@ -116,6 +117,9 @@ class File
      */
     private function __construct($config = [])
     {
+        if (!extension_loaded('fileinfo')) {
+            throw new BadFunctionCallException('not support: fileinfo，请安装php_fileinfo扩展');      //判断是否有扩展
+        }
         if ((!is_null(Config::get('upload')))) {
             $this->config = array_merge($this->config, Config::get('upload'), $config);
         } else {
