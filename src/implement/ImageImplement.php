@@ -31,7 +31,9 @@ class ImageImplement implements FileInterface
         'save_real_path' => '/home/wwwroot/ssp_v1/public/upload/image',
         'save_relative_path' => '/upload/image',
         'create_thumb' => true,
-        'db_table_name'=>'image'
+        'db_table_name'=>'image',
+        'thumb_height'=>150,
+        'thumb_width'=>150
     ];
 
     private static $instance = [];
@@ -99,7 +101,7 @@ class ImageImplement implements FileInterface
                 $data['thumb_save_name'] = str_replace($data['file_name'], $data['thumb_file_name'], $data['save_name']);
                 $thumb_pathname = $upload->getPath() . DS . $data['thumb_file_name'];
                 $thumb_info = ImageEditor::open($upload->getRealPath())
-                    ->thumb(150, 150, ImageEditor::THUMB_FILLED)
+                    ->thumb($this->config['thumb_height'], $this->config['thumb_width'], ImageEditor::THUMB_FILLED)
                     ->save($thumb_pathname);
                 $data['thumb_ext'] = pathinfo($thumb_pathname, PATHINFO_EXTENSION);
                 $data['thumb_mime'] = $thumb_info->mime();

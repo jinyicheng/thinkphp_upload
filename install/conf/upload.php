@@ -25,6 +25,10 @@ return [
         'save_relative_path' => DS . 'upload' . DS . 'image',
         //是否生成缩略图，是：true，否：false
         'create_thumb' => true,
+        //缩略图高（单位：像素）
+        'thumb_height'=>150,
+        //缩略图宽（单位：像素）
+        'thumb_width'=>150,
         //保存上传记录的数据表名
         'db_table_name'=>'image'
     ],
