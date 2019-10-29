@@ -1,10 +1,10 @@
 <?php
 
-namespace jinyicheng\upload\implement;
+namespace jinyicheng\thinkphp_upload\implement;
 
-use jinyicheng\upload\FileValidate;
+use jinyicheng\thinkphp_upload\FileValidate;
 use jinyicheng\thinkphp_status\Status;
-use jinyicheng\upload\FileInterface;
+use jinyicheng\thinkphp_upload\FileInterface;
 use jinyicheng\toolbox\Unique;
 use think\Db;
 use think\Request;

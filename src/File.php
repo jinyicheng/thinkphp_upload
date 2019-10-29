@@ -7,21 +7,20 @@
 // | 作者：金毅成  234067496@qq.com
 // +----------------------------------------------------------------------
 
-namespace jinyicheng\upload;
+namespace jinyicheng\thinkphp_upload;
 
 use InvalidArgumentException;
 use jinyicheng\thinkphp_status\Status;
-use jinyicheng\upload\implement\CompressedPackageImplement;
-use jinyicheng\upload\implement\DocumentImplement;
-use jinyicheng\upload\implement\ImageImplement;
-use jinyicheng\upload\implement\MediaImplement;
-use jinyicheng\upload\implement\ProgramImplement;
-use jinyicheng\upload\interfaces\FileInterface;
+use jinyicheng\thinkphp_upload\implement\CompressedPackageImplement;
+use jinyicheng\thinkphp_upload\implement\DocumentImplement;
+use jinyicheng\thinkphp_upload\implement\ImageImplement;
+use jinyicheng\thinkphp_upload\implement\MediaImplement;
+use jinyicheng\thinkphp_upload\implement\ProgramImplement;
 use think\Config;
 use think\Exception;
 use think\Request;
 
-class File extends Common
+class File
 {
     private $config = [
         // +----------------------------------------------------------------------

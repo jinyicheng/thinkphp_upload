@@ -1,6 +1,6 @@
 <?php
 
-namespace jinyicheng\upload;
+namespace jinyicheng\thinkphp_upload;
 use think\Validate;
 class FileValidate extends Validate
 {
