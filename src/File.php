@@ -189,58 +189,27 @@ class File extends Common
      * @return array|mixed
      * @throws Exception
      */
-    public function upload($file_data,$is_attachment=false,$status=false,$related_object='',$related_id='')
+    public function upload($file_data, $is_attachment = false, $status = false, $related_object = '', $related_id = '')
     {
         $extension = strtolower(pathinfo($file_data->getInfo('name'), PATHINFO_EXTENSION));
         $typeOfExtension = $this->typeOfExtension($extension);
         if (is_null($typeOfExtension)) {
-            if($request->get('plugin')=='ueditor') {
-                return [
-                    'state' => '文件类型' . $extension . '未经许可！',
-                    'url' => null,
-                    'title' => null,
-                    'original' => null,
-                    'type' => null,
-                    'size' => null,
-                    'key' => null
-                ];
-            }else{
-                return [
-                    'code' => 0,
-                    'msg' => '文件类型' . $extension . '未经许可！'
-                ];
-            }
+            return [
+                'code' => Status::get('#4031.code'),
+                'message' => '文件类型' . $extension . '未经许可！',
+                'data' => null,
+            ];
         }
-        $fileImplement = self::handle($typeOfExtension);
-        /** @var FileInterface $fileImplement */
-        $fileImplement_uploadResult = $fileImplement->upload(
+        $handle = self::handle($typeOfExtension);
+        /** @var FileInterface $handle */
+        return $handle->upload(
             $file_data,
             $is_attachment,
             $status,
             $related_object,
             $related_id
         );
-        if($request->get('plugin')=='ueditor'){
-            if($fileImplement_uploadResult['code']===Status::get('#4031.code')){
-                return [
-                    'state' => $fileImplement_uploadResult['message'],
-                    'url' => null,
-                    'title' => null,
-                    'original' => null,
-                    'type' => null,
-                    'size' => null,
-                    'key' => null
-                ];
-            }else{
-                return array_merge(
-                $fileImplement_uploadResult,
-                [
-                    'state' => 'SUCCESS'
-                ]);
-            }
-        } else {
-            return $fileImplement_uploadResult;
-        }
+
     }
 
     /**
@@ -251,14 +220,13 @@ class File extends Common
      */
     public function delete($file_name='',$key='')
     {
-        $extension = strtolower(pathinfo($request->post('file_name'), PATHINFO_EXTENSION));
+        $extension = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
         $typeOfExtension = $this->typeOfExtension($extension);
-        $file = self::handle($typeOfExtension);
-        $file_deleteResult = $file->delete(
+        $handle = self::handle($typeOfExtension, $this->config);
+        return $handle->delete(
             $file_name,
             $key
         );
-        return $file_deleteResult;
     }
 
 
@@ -272,19 +240,19 @@ class File extends Common
     {
         switch ($type) {
             case 'image':
-                return ImageImplement::getInstance($config);
+                return ImageImplement::getInstance($config['image']);
                 break;
             case 'document':
-                return DocumentImplement::getInstance($config);
+                return DocumentImplement::getInstance($config['document']);
                 break;
             case 'media':
-                return MediaImplement::getInstance($config);
+                return MediaImplement::getInstance($config['media']);
                 break;
             case 'program':
-                return ProgramImplement::getInstance($config);
+                return ProgramImplement::getInstance($config['program']);
                 break;
             case 'compressed_package':
-                return CompressedPackageImplement::getInstance($config);
+                return CompressedPackageImplement::getInstance($config['compressed_package']);
                 break;
             default:
                 throw new Exception($type . '文件处理接口未实现。');
