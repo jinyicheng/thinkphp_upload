@@ -5,14 +5,14 @@ namespace jinyicheng\thinkphp_upload;
 interface FileInterface
 {
     /**
-     * @param \Think\file $file_data
+     * @param \think\File $file
      * @param $is_attachment
      * @param $status
      * @param $related_object
      * @param $related_id
      * @return mixed
      */
-    public function upload($file_data, $is_attachment, $status, $related_object, $related_id);
+    public function upload($file, $is_attachment, $status, $related_object, $related_id);
 
     /**
      * @param $file_name

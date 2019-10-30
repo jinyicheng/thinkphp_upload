@@ -1,6 +1,6 @@
 <?php
 
-namespace jinyicheng\thinkphp_upload\implement;
+namespace jinyicheng\thinkphp_upload\implement\local;
 
 use jinyicheng\thinkphp_upload\FileValidate;
 use jinyicheng\thinkphp_status\Status;
@@ -10,11 +10,14 @@ use think\Config;
 use think\Db;
 use think\Request;
 
-class DocumentImplement implements FileInterface
+
+class MediaImplement implements FileInterface
 {
     private $config = [
+        //文件最大尺寸（字节）
         'allow_max_size' => 16777216,
-        'allow_ext' => 'doc,docx,xls,xlsx,ppt,pptx,pdf,txt',
+        //允许格式后缀
+        'allow_ext' => 'ape,aac,aiff,amr,caf,flac,flv,swf,avi,rm,rmvb,mpeg,mpg,ogg,ogv,mkv,mov,m4a,wmv,mp4,webm,mp3,wav,wma,mid',
         // +----------------------------------------------------------------------
         // | 保存规则
         // +----------------------------------------------------------------------
@@ -25,15 +28,20 @@ class DocumentImplement implements FileInterface
         //'sha1'使用sha1_file散列
         //'uniqid':使用uniqid
         'save_rule' => 'default',
-        'save_real_path' => '/home/wwwroot/ssp_v1/public/upload/document',
-        'save_relative_path' => '/upload/document',
-        'db_table_name'=>'document'
+        //保存实际路径
+        'save_real_path' => ROOT_PATH . 'public' . DS . 'upload' . DS . 'media',
+        //保存相对路径，相对于域名访问而言
+        'save_relative_path' => DS . 'upload' . DS . 'media',
+        //存储模式（本地：local，阿里云OSS：oss，除本地存储外，其它模式下必须安装其它组件支持）
+        'save_mode'=>'oss',
+        //保存上传记录的数据表名
+        'db_table_name'=>'media'
     ];
 
     private static $instance = [];
 
     /**
-     * CompressedPackageImplement constructor.
+     * MediaImplement constructor.
      * @param array $config
      */
     private function __construct($config = [])
@@ -43,7 +51,7 @@ class DocumentImplement implements FileInterface
 
     /**
      * @param array $config
-     * @return DocumentImplement
+     * @return MediaImplement
      */
     public static function getInstance($config = [])
     {
@@ -57,16 +65,16 @@ class DocumentImplement implements FileInterface
     /**
      * 上传
      *
-     * @param \Think\file $file_data
+     * @param \think\File $file
      * @param bool $is_attachment
      * @param bool $status
      * @param string $related_object
      * @param string $related_id
      * @return bool|array
      */
-    public function upload($file_data, $is_attachment = false, $status = false, $related_object = '', $related_id = '')
+    public function upload($file, $is_attachment = false, $status = false, $related_object = '', $related_id = '')
     {
-        $upload = $file_data
+        $upload = $file
             ->validate([
                 'size' => $this->config['allow_max_size'],
                 'ext' => $this->config['allow_ext']
@@ -114,6 +122,7 @@ class DocumentImplement implements FileInterface
 
     /**
      * 删除
+     *
      * @param string $file_name 存储名
      * @param string $key 操作秘钥
      * @return bool|mixed
@@ -154,6 +163,7 @@ class DocumentImplement implements FileInterface
                 'data'=>$fileDb_findResult,
                 'message'=>'删除成功'
             ];
+
         });
     }
 }

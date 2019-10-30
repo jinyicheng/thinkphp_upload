@@ -15,6 +15,11 @@ install文件夹下的文件为使用时所需的文件，请按以下说明部�
    2.2. 如需区分模块，不同模块走不同配置，请放置在对应模块下，如放置在admin模块下：application/admin/extra/upload.php
 
 3. 修改upload.php中的参数配置（具体参数说明请见注释），需要注意的是，如果采用1.1的方式，文件统一管理时，需要将db_table_name统一设置成您统一存储的表名，示例中的文件统一管理表即file表，数据表连接基于thinkphp5.0.*官方设定
+4. 目前支持的上传方式有本地和阿里云OSS2种，如使用阿里云OSS需要将install/conf/oss.php放在配置扩展文件夹中，oss.php中的参数配置（具体参数说明请见注释）
+                                    
+   4.1. 正常情况下该文件的存放路径是：application/extra/oss.php
+
+   4.2. 如需区分模块，不同模块走不同配置，请放置在对应模块下，如放置在admin模块下：application/admin/extra/oss.php
 
 # 表字段说明
 
