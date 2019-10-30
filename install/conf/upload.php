@@ -23,6 +23,8 @@ return [
         'save_real_path' => ROOT_PATH . 'public' . DS . 'upload' . DS . 'image',
         //保存相对路径，相对于域名访问而言
         'save_relative_path' => DS . 'upload' . DS . 'image',
+        //存储模式（本地：local，阿里云OSS：oss，除本地存储外，其它模式下必须安装其它组件支持）
+        'save_mode'=>'oss',
         //是否生成缩略图，是：true，否：false
         'create_thumb' => true,
         //缩略图高（单位：像素）
@@ -51,6 +53,8 @@ return [
         'save_real_path' => ROOT_PATH . 'public' . DS . 'upload' . DS . 'document',
         //保存相对路径，相对于域名访问而言
         'save_relative_path' => DS . 'upload' . DS . 'document',
+        //存储模式（本地：local，阿里云OSS：oss，除本地存储外，其它模式下必须安装其它组件支持）
+        'save_mode'=>'oss',
         //保存上传记录的数据表名
         'db_table_name'=>'document'
     ],
@@ -73,6 +77,8 @@ return [
         'save_real_path' => ROOT_PATH . 'public' . DS . 'upload' . DS . 'media',
         //保存相对路径，相对于域名访问而言
         'save_relative_path' => DS . 'upload' . DS . 'media',
+        //存储模式（本地：local，阿里云OSS：oss，除本地存储外，其它模式下必须安装其它组件支持）
+        'save_mode'=>'oss',
         //保存上传记录的数据表名
         'db_table_name'=>'media'
     ],
@@ -95,6 +101,8 @@ return [
         'save_real_path' => ROOT_PATH . 'public' . DS . 'upload' . DS . 'program',
         //保存相对路径，相对于域名访问而言
         'save_relative_path' => DS . 'upload' . DS . 'program',
+        //存储模式（本地：local，阿里云OSS：oss，除本地存储外，其它模式下必须安装其它组件支持）
+        'save_mode'=>'oss',
         //保存上传记录的数据表名
         'db_table_name'=>'program'
     ],
@@ -117,6 +125,8 @@ return [
         'save_real_path' => ROOT_PATH . 'public' . DS . 'upload' . DS . 'compressed_package',
         //保存相对路径，相对于域名访问而言
         'save_relative_path' => DS . 'upload' . DS . 'compressed_package',
+        //存储模式（本地：local，阿里云OSS：oss，除本地存储外，其它模式下必须安装其它组件支持）
+        'save_mode'=>'oss',
         //保存上传记录的数据表名
         'db_table_name'=>'compressed_package'
     ]
