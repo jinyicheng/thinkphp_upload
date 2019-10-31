@@ -12,8 +12,9 @@ use think\Config;
 use think\Db;
 use think\Request;
 
-class DocumentImplement extends OssImplement implements FileInterface
+class DocumentImplement implements FileInterface
 {
+    use OssTrait;
     private $config = [
         //文件最大尺寸（字节）
         'allow_max_size' => 16777216,
@@ -57,11 +58,10 @@ class DocumentImplement extends OssImplement implements FileInterface
         } else {
             $this->config = array_merge($this->config, $config);
         }
-        if (!class_exists('OssClient', false)) throw new BadFunctionCallException('OSS OssClient类不存在');
-        if (!isset($config['access_key_id'])) throw new InvalidArgumentException('没有找到oss相关access_key_id设置');
-        if (!isset($config['access_key_secret'])) throw new InvalidArgumentException('没有找到oss相关access_key_secret设置');
-        if (!isset($config['end_point'])) throw new InvalidArgumentException('没有找到oss相关end_point设置');
-        if (!isset($config['bucket'])) throw new InvalidArgumentException('没有找到oss相关bucket设置');
+        if (!isset($this->config['access_key_id'])) throw new InvalidArgumentException('没有找到oss相关access_key_id设置');
+        if (!isset($this->config['access_key_secret'])) throw new InvalidArgumentException('没有找到oss相关access_key_secret设置');
+        if (!isset($this->config['end_point'])) throw new InvalidArgumentException('没有找到oss相关end_point设置');
+        if (!isset($this->config['bucket'])) throw new InvalidArgumentException('没有找到oss相关bucket设置');
     }
 
     /**
