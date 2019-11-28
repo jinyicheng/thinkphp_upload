@@ -95,7 +95,7 @@ class DocumentImplement implements FileInterface
                 'ext' => $this->config['allow_ext']
             ])
             ->rule($this->config['save_rule'])
-            ->move($this->config['save_real_path']);
+            ->move($this->config['save_real_path'],$this->config['save_rule']=='original'?false:true);
         if ($upload) {
             $data['original_name'] = $upload->getInfo('name');
             $data['file_name'] = $upload->getFilename();
