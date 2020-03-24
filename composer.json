@@ -19,7 +19,6 @@
   "require": {
     "php": ">=7.1.0",
     "topthink/framework": "6.0.*",
-    "jinyicheng/thinkphp_status": "1.0",
     "aliyuncs/oss-sdk-php": "^2.3",
     "ext-json": "*"
   },
